@@ -9,12 +9,12 @@ export interface PlayerCharacter {
 
 export interface Class {
     name: string;
-    traits: string[];
+    traits: Trait[];
 } //end interface Class
 
 export interface Background {
     name: string;
-    traits: string[];
+    traits: Trait[];
 } //end interface Background
 
 export interface Species {
@@ -204,7 +204,7 @@ export enum DamageType {
 
 export interface Monster {
     name: string;
-    species: Species;
+    // species: Species;
     type: CreatureType[];
     size: Size;
     alignment: string;
@@ -215,8 +215,7 @@ export interface Monster {
     skills: Skill[];
     senses: string[];
     languages: Language[];
-    cr: number;
-    xp: number;
+    cr: ChallengeRating;
     traits: Trait[];
     actions: Action[];
     bonusActions: Action[];
@@ -224,14 +223,17 @@ export interface Monster {
     legendaryActions: LegendaryAction[];
     lairActions: LairAction[];
     spells: Spell[];
+    damageImmunities: DamageType[];
+    damageResistances: DamageType[];
+    damageVulnerabilities: DamageType[];
+    conditionImmunities: ConditionType[];
 }
 
 export interface Action {
     name: string;
     description: string;
-    attackBonus: number;
-    damage: DamageType;
-    damageBonus: number;
+    attack?: Attack;
+    spell?: Spell;
 }
 
 export interface Reaction {
@@ -271,4 +273,70 @@ export interface SpellComponents {
     somatic: boolean;
     material: boolean;
     materialComponents: Item[];
-}
+} 
+
+export enum ChallengeRating {
+    Zero = 0,
+    OneEighth = 0.125,
+    OneQuarter = 0.25,
+    OneHalf = 0.5,
+    One = 1,
+    Two = 2,
+    Three = 3,
+    Four = 4,
+    Five = 5,
+    Six = 6,
+    Seven = 7,
+    Eight = 8,
+    Nine = 9,
+    Ten = 10,
+    Eleven = 11,
+    Twelve = 12,
+    Thirteen = 13,
+    Fourteen = 14,
+    Fifteen = 15,
+    Sixteen = 16,
+    Seventeen = 17,
+    Eighteen = 18,
+    Nineteen = 19,
+    Twenty = 20,
+    TwentyOne = 21,
+    TwentyTwo = 22,
+    TwentyThree = 23,
+    TwentyFour = 24,
+    TwentyFive = 25,
+    TwentySix = 26,
+    TwentySeven = 27,
+    TwentyEight = 28,
+    TwentyNine = 29,
+    Thirty = 30
+} //end enum ChallengeRating
+
+export interface Attack {
+    name: string;
+    description: string;
+    toHit: number;
+    reach: number;
+    range: number;
+    targets: number;
+    damage: DamageType;
+    damageBonus: number;
+} //end interface Attack
+
+export enum ConditionType {
+    Blinded = "Blinded",
+    Charmed = "Charmed",
+    Deafened = "Deafened",
+    Frightened = "Frightened",
+    Grappled = "Grappled",
+    Incapacitated = "Incapacitated",
+    Invisible = "Invisible",
+    Paralyzed = "Paralyzed",
+    Petrified = "Petrified",
+    Poisoned = "Poisoned",
+    Prone = "Prone",
+    Restrained = "Restrained",
+    Stunned = "Stunned",
+    Unconscious = "Unconscious",
+    Exhaustion = "Exhaustion"
+} //end enum ConditionType
