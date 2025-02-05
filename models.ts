@@ -201,3 +201,74 @@ export enum DamageType {
     Slashing = "Slashing",
     Thunder = "Thunder"
 }
+
+export interface Monster {
+    name: string;
+    species: Species;
+    type: CreatureType[];
+    size: Size;
+    alignment: string;
+    ac: number;
+    hp: number;
+    speed: Speed;
+    abilities: Abilities;
+    skills: Skill[];
+    senses: string[];
+    languages: Language[];
+    cr: number;
+    xp: number;
+    traits: Trait[];
+    actions: Action[];
+    bonusActions: Action[];
+    reactions: Reaction[];
+    legendaryActions: LegendaryAction[];
+    lairActions: LairAction[];
+    spells: Spell[];
+}
+
+export interface Action {
+    name: string;
+    description: string;
+    attackBonus: number;
+    damage: DamageType;
+    damageBonus: number;
+}
+
+export interface Reaction {
+    name: string;
+    description: string;
+    attackBonus: number;
+    damage: DamageType;
+    damageBonus: number;
+}
+
+export interface LegendaryAction {
+    name: string;
+    description: string;
+    attackBonus: number;
+    damage: DamageType;
+    damageBonus: number;
+}
+
+export interface LairAction {
+    name: string;
+    description: string;
+}
+
+export interface Spell {
+    name: string;
+    level: number;
+    school: string;
+    castingTime: string;
+    range: string;
+    components: SpellComponents;
+    duration: string;
+    description: string;
+}
+
+export interface SpellComponents {
+    verbal: boolean;
+    somatic: boolean;
+    material: boolean;
+    materialComponents: Item[];
+}
