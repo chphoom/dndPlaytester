@@ -128,6 +128,8 @@ export interface Trait {
     damageOnFail?: string;         // The damage dealt on a failed save (e.g., "1d8")
     damageType?: DamageType;       // The type of damage dealt on a failed save (e.g., "acid")
     // commenting out bc assuming success halves dmg damageOnSuccess?: DamageType;      // The damage dealt on a successful save (e.g., "half of 1d8 acid")
+    healingAmount?: number;        // Optional healing effect
+    healingDice?: string;          // Optional dice notation for healing
 }
 
 export interface Armor {
@@ -183,6 +185,8 @@ export interface Item {
     armor?: Armor;
     weapon?: Weapon;
     tool?: Tool;
+    healingAmount?: number;        // Optional healing effect
+    healingDice?: string;          // Optional dice notation for healing
 } //end interface Item
 
 export enum DamageType {
@@ -241,6 +245,7 @@ export interface Action {
     saveDC?: number;           // If the action requires a saving throw, specify the DC
     saveType?: AbilityScore;   // The ability used for the saving throw (e.g., STR, DEX)
     conditionsInflicted?: ConditionType[]; // Conditions applied (e.g., Grappled, Stunned)
+    item?: Item;
 }
 
 export interface SpellSlots {
@@ -264,6 +269,8 @@ export interface Spell {
     components: SpellComponents;
     duration: string;
     description: string;
+    healingAmount?: number;        // Optional healing effect
+    healingDice?: string;          // Optional dice notation for healing
 }
 
 export interface SpellComponents {
@@ -285,6 +292,8 @@ export interface Attack {
     damage: string; // e.g., "1d8+3"
     damageType: DamageType;
     damageBonus: number;
+    healingAmount?: number;        // Optional healing effect
+    healingDice?: string;          // Optional dice notation for healing
 } //end interface Attack
 
 export enum ConditionType {

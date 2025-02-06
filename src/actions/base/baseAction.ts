@@ -1,4 +1,4 @@
-import { Action, ConditionType, Spell, Attack } from "../../models";
+import { Action, ConditionType, Spell, Attack, Item } from "../../models";
 import { Abilities, AbilityScore } from "../../services/abilityService";
 
 
@@ -15,6 +15,7 @@ export class BaseAction implements Action {
     saveDC?: number;           // If the action requires a saving throw, specify the DC
     saveType?: AbilityScore;   // The ability used for the saving throw (e.g., STR, DEX)
     conditionsInflicted?: ConditionType[]; // Conditions applied (e.g., Grappled, Stunned)
+    item?: Item;
 
     constructor(data: Action) {
         this.name = data.name;
@@ -29,6 +30,7 @@ export class BaseAction implements Action {
         this.saveDC = data.saveDC;
         this.saveType = data.saveType;
         this.conditionsInflicted = data.conditionsInflicted;
+        this.item = data.item;
     }//end constructor
     
 }//end class baseAction

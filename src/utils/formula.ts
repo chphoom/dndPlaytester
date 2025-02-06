@@ -1,28 +1,18 @@
 // misc formulas i guess
 
-export function calculatePassivePerception(
-    wisdom: number,
-    proficiencySource: { cr?: number; level?: number }, 
-    isProficient: boolean, 
-    hasExpertise: boolean = false
-): number {
-    let proficiencyBonus = 0;
+export function getPassivePerception(wisMod: number, proficiencyBonus: number, proficient: boolean, expertise: boolean = false, advantage: boolean = false, disadvantage: boolean = false): number {
+    let perceptionModifier = wisMod + (proficient ? proficiencyBonus : 0);
 
-    if (proficiencySource.cr !== undefined) {
-        // Get proficiency based on Challenge Rating (for monsters)
-        proficiencyBonus = getProficiencyBonus(proficiencySource.cr);
-    } else if (proficiencySource.level !== undefined) {
-        // Get proficiency based on Level (for players/NPCs)
-        proficiencyBonus = getCharacterProficiencyBonus(proficiencySource.level);
+    if (expertise) {
+        perceptionModifier += proficiencyBonus; // Doubles proficiency bonus
     }
 
-    let perceptionModifier = Math.floor((wisdom - 10) / 2);
+    let passivePerception = 10 + perceptionModifier;
 
-    if (isProficient) {
-        perceptionModifier += hasExpertise ? proficiencyBonus * 2 : proficiencyBonus;
-    }
+    if (advantage) passivePerception += 5;
+    if (disadvantage) passivePerception -= 5;
 
-    return 10 + perceptionModifier;
+    return passivePerception;
 }
 
 export function getProficiencyBonus(cr: number): number {
