@@ -1,9 +1,11 @@
 import { CreatureType, Size, ConditionType, DamageType } from "../models";
+import { AbilityScore } from "../services/abilityService";
 import { rollDice } from "../utils/dice";
 import { BaseMonster } from "./base/baseMonster";
+import * as Traits from "../traits";
 
 // TODO - passive perception
-// TODO 
+// TODO - 
 
 export class CornOoze extends BaseMonster {
     constructor(hitDice: string) {
@@ -17,19 +19,19 @@ export class CornOoze extends BaseMonster {
             alignment: "Unaligned",
             ac: 8,
             hp: hp,
-            speed: { walk: 20 },
+            speed: { walk: 10, climb: 10 },
             abilities: abilities,
             skills: [],
             senses: ["Blindsight 30ft"],
             languages: [],
             cr: 3,
-            traits: [{ name: "Amorphous", description: "Can move through small spaces without squeezing." }],
-            actions: [{ name: "Slam", description: "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 6 (1d8 + 2) bludgeoning damage." }],
+            traits: [ new Traits.Amorphous, new Traits.SpiderClimb, new Traits.CorrosiveForm],
+            actions: [{ name: "Pseudopod", description: "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 6 (1d8 + 2) bludgeoning damage." },],
             bonusActions: [],
             reactions: [],
             legendaryActions: [],
             lairActions: [],
-            spells: [],
+            spellSlots: {level1: 0, level2: 0, level3: 0, level4: 0, level5: 0, level6: 0, level7: 0, level8: 0, level9: 0 },
             damageImmunities: [DamageType.Lightning, DamageType.Slashing],
             damageResistances: [DamageType.Acid],
             damageVulnerabilities: [],

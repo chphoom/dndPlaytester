@@ -1,3 +1,6 @@
+import { AbilityScore, Abilities } from './services/abilityService';
+import { ChallengeRating } from './services/challengeRatingService';
+
 export interface PlayerCharacter {
     name: string;
     class: Class;
@@ -29,15 +32,6 @@ export interface Species {
     skillProficiencies: Skill[];
     trance: boolean;
 } //end interface Species
-
-export interface Abilities {
-    strength: number;
-    dexterity: number;
-    constitution: number;
-    intelligence: number;
-    wisdom: number;
-    charisma: number;
-} //end interface Abilities
 
 export interface Equipment {
     armor: Armor;
@@ -129,7 +123,12 @@ export enum Skill {
 export interface Trait {
     name: string;
     description: string;
-} //end interface Trait
+    saveDC?: number;                   // The DC for the saving throw (e.g., 13 for Corrosive Form)
+    saveType?: AbilityScore;           // The ability score used for the saving throw (e.g., CON for Corrosive Form)
+    damageOnFail?: string;         // The damage dealt on a failed save (e.g., "1d8")
+    damageType?: DamageType;       // The type of damage dealt on a failed save (e.g., "acid")
+    // commenting out bc assuming success halves dmg damageOnSuccess?: DamageType;      // The damage dealt on a successful save (e.g., "half of 1d8 acid")
+}
 
 export interface Armor {
     name: string;
@@ -215,46 +214,45 @@ export interface Monster {
     skills: Skill[];
     senses: string[];
     languages: Language[];
-    cr: ChallengeRating;
-    traits: Trait[];
+    cr?: ChallengeRating;
+    traits?: Trait[];
     actions: Action[];
-    bonusActions: Action[];
-    reactions: Reaction[];
-    legendaryActions: LegendaryAction[];
-    lairActions: LairAction[];
-    spells: Spell[];
-    damageImmunities: DamageType[];
-    damageResistances: DamageType[];
-    damageVulnerabilities: DamageType[];
-    conditionImmunities: ConditionType[];
+    bonusActions?: Action[];
+    reactions?: Action[];
+    legendaryActions?: Action[];
+    lairActions?: Action[];
+    spellSlots?: SpellSlots;
+    damageImmunities?: DamageType[];
+    damageResistances?: DamageType[];
+    damageVulnerabilities?: DamageType[];
+    conditionImmunities?: ConditionType[];
 }
 
 export interface Action {
-    name: string;
-    description: string;
-    attack?: Attack;
-    spell?: Spell;
+    name: string;              // The name of the action (e.g., "Multiattack")
+    description: string;       // Rules text describing the action
+    attack?: Attack;           // If the action includes a weapon or melee attack
+    spell?: Spell;             // If the action involves casting a spell
+    recharge?: number;         // If the action has a recharge (e.g., Recharge 5-6)
+    usesPerRest?: number;      // If the action has a limited number of uses per rest
+    legendary?: boolean;       // If the action can be used as a legendary action
+    lair?: boolean;            // If the action is a lair action
+    special?: boolean;         // If the action is unique (e.g., Innate abilities)
+    saveDC?: number;           // If the action requires a saving throw, specify the DC
+    saveType?: AbilityScore;   // The ability used for the saving throw (e.g., STR, DEX)
+    conditionsInflicted?: ConditionType[]; // Conditions applied (e.g., Grappled, Stunned)
 }
 
-export interface Reaction {
-    name: string;
-    description: string;
-    attackBonus: number;
-    damage: DamageType;
-    damageBonus: number;
-}
-
-export interface LegendaryAction {
-    name: string;
-    description: string;
-    attackBonus: number;
-    damage: DamageType;
-    damageBonus: number;
-}
-
-export interface LairAction {
-    name: string;
-    description: string;
+export interface SpellSlots {
+    level1: number;
+    level2: number;
+    level3: number;
+    level4: number;
+    level5: number;
+    level6: number;
+    level7: number;
+    level8: number;
+    level9: number;
 }
 
 export interface Spell {
@@ -275,51 +273,17 @@ export interface SpellComponents {
     materialComponents: Item[];
 } 
 
-export enum ChallengeRating {
-    Zero = 0,
-    OneEighth = 0.125,
-    OneQuarter = 0.25,
-    OneHalf = 0.5,
-    One = 1,
-    Two = 2,
-    Three = 3,
-    Four = 4,
-    Five = 5,
-    Six = 6,
-    Seven = 7,
-    Eight = 8,
-    Nine = 9,
-    Ten = 10,
-    Eleven = 11,
-    Twelve = 12,
-    Thirteen = 13,
-    Fourteen = 14,
-    Fifteen = 15,
-    Sixteen = 16,
-    Seventeen = 17,
-    Eighteen = 18,
-    Nineteen = 19,
-    Twenty = 20,
-    TwentyOne = 21,
-    TwentyTwo = 22,
-    TwentyThree = 23,
-    TwentyFour = 24,
-    TwentyFive = 25,
-    TwentySix = 26,
-    TwentySeven = 27,
-    TwentyEight = 28,
-    TwentyNine = 29,
-    Thirty = 30
-} //end enum ChallengeRating
 
 export interface Attack {
     name: string;
     description: string;
+    spell?: Spell;
     toHit: number;
     reach: number;
     range: number;
     targets: number;
-    damage: DamageType;
+    damage: string; // e.g., "1d8+3"
+    damageType: DamageType;
     damageBonus: number;
 } //end interface Attack
 
