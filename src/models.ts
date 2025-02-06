@@ -273,15 +273,15 @@ export interface SpellComponents {
     materialComponents: Item[];
 } 
 
-
 export interface Attack {
     name: string;
     description: string;
     spell?: Spell;
     toHit: number;
     reach: number;
-    range: number;
+    range?: {long: number, short: number};
     targets: number;
+    targeted: PlayerCharacter[];
     damage: string; // e.g., "1d8+3"
     damageType: DamageType;
     damageBonus: number;

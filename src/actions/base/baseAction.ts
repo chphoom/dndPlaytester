@@ -2,7 +2,7 @@ import { Action, ConditionType, Spell, Attack } from "../../models";
 import { Abilities, AbilityScore } from "../../services/abilityService";
 
 
-export class baseAction implements Action {
+export class BaseAction implements Action {
     name: string;              // The name of the action (e.g., "Multiattack")
     description: string;       // Rules text describing the action
     attack?: Attack;           // If the action includes a weapon or melee attack

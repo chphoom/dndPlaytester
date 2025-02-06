@@ -1,8 +1,10 @@
 import { CreatureType, Size, ConditionType, DamageType } from "../models";
-import { AbilityScore } from "../services/abilityService";
+import { AbilityScore, getAbilityModifier } from "../services/abilityService";
 import { rollDice } from "../utils/dice";
 import { BaseMonster } from "./base/baseMonster";
 import * as Traits from "../traits";
+import * as Actions from "../actions";
+import { getProficiencyBonus } from "../services/challengeRatingService";
 
 // TODO - passive perception
 // TODO - 
@@ -26,7 +28,18 @@ export class CornOoze extends BaseMonster {
             languages: [],
             cr: 3,
             traits: [ new Traits.Amorphous, new Traits.SpiderClimb, new Traits.CorrosiveForm],
-            actions: [{ name: "Pseudopod", description: "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 6 (1d8 + 2) bludgeoning damage." },],
+            actions: [
+                new Actions.AttackAction({ 
+                    name: "Pseudopod", 
+                    description: "Melee Weapon Attack: +5 to hit, reach 5 ft., one target. Hit: 6 (1d8 + 2) bludgeoning damage.",
+                    toHit: 5,
+                    reach: 5,
+                    targets: 1,
+                    targeted: [],
+                    damage: "1d8",
+                    damageType: DamageType.Bludgeoning,
+                    damageBonus: 2}),
+                ],
             bonusActions: [],
             reactions: [],
             legendaryActions: [],
