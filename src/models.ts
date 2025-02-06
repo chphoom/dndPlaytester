@@ -313,3 +313,19 @@ export enum ConditionType {
     Unconscious = "Unconscious",
     Exhaustion = "Exhaustion"
 } //end enum ConditionType
+
+export interface Party {
+    name: string;
+    members: PlayerCharacter[];
+    pets: Monster[];
+    allies: Monster[];
+}
+
+export interface Combatant {
+    name: String;
+    initiative: number;
+    PlayerCharacter?: PlayerCharacter;
+    Monster?: Monster;
+    team: String;
+    tiebreaker: number;
+}//end interface Combatant
