@@ -1,4 +1,6 @@
 import { Monster, Action, Spell, Attack } from "../models";
+import { rollDice } from "../utils/dice";
+import { Summon } from "../actions";
 
 export enum ChallengeRating {
     Zero = 0,
@@ -338,6 +340,13 @@ function calcDamagePerRound(monster: Monster): number {
             if (action.spell) {
                 totalDamage += calcSpellDamage(action.spell);
             }
+
+            // Handle Summon action
+            if (action instanceof Summon) {
+                action.creatures.forEach(summonedCreature => {
+                    totalDamage += calcDamagePerRound(summonedCreature); // Add damage of summoned creatures recursively
+                });
+            }
         });
     }
 
@@ -349,6 +358,13 @@ function calcDamagePerRound(monster: Monster): number {
             }
             if (bonusAction.spell) {
                 totalDamage += calcSpellDamage(bonusAction.spell);
+            }
+
+            // Handle Summon action in bonus actions (if applicable)
+            if (bonusAction instanceof Summon) {
+                bonusAction.creatures.forEach(summonedCreature => {
+                    totalDamage += calcDamagePerRound(summonedCreature); // Add damage of summoned creatures recursively
+                });
             }
         });
     }
@@ -362,6 +378,32 @@ function calcDamagePerRound(monster: Monster): number {
             if (legendaryAction.spell) {
                 totalDamage += calcSpellDamage(legendaryAction.spell);
             }
+
+            // Handle Summon action in legendary actions (if applicable)
+            if (legendaryAction instanceof Summon) {
+                legendaryAction.creatures.forEach(summonedCreature => {
+                    totalDamage += calcDamagePerRound(summonedCreature); // Add damage of summoned creatures recursively
+                });
+            }
+        });
+    }
+
+    // Calculate damage from reactions (if any)
+    if (monster.reactions) {
+        monster.reactions.forEach(reaction => {
+            if (reaction.attack) {
+                totalDamage += calcAttackDamage(reaction.attack, reaction);
+            }
+            if (reaction.spell) {
+                totalDamage += calcSpellDamage(reaction.spell);
+            }
+
+            // Handle Summon action in reactions (if applicable)
+            if (reaction instanceof Summon) {
+                reaction.creatures.forEach(summonedCreature => {
+                    totalDamage += calcDamagePerRound(summonedCreature); // Add damage of summoned creatures recursively
+                });
+            }
         });
     }
 
@@ -369,10 +411,8 @@ function calcDamagePerRound(monster: Monster): number {
     if (monster.traits) {
         monster.traits.forEach(trait => {
             // Example: if trait includes an attack (you could add more specific logic here)
-            if (trait.name.toLowerCase().includes("attack")) {
-                // This assumes the trait includes damage somehow; adjust this as needed
-                // As an example, adding hypothetical damage
-                totalDamage += 10;  // Replace this with logic specific to the trait
+            if (trait.description.toLowerCase().includes("damage")) {
+                totalDamage += rollDice(trait.damageOnFail ?? "");  // Replace this with logic specific to the trait
             }
         });
     }
@@ -427,20 +467,32 @@ function adjustOffensiveCR(cr: ChallengeRating, attackBonusDifference: number): 
         (cr + Math.floor(attackBonusDifference / 2)) as ChallengeRating : cr;
 }
 
- export function calcCR(monster: Monster): ChallengeRating {
+export function calcCR(monster: Monster, text: boolean, targetCR?: ChallengeRating): ChallengeRating {
+    if (text) console.log("HP: " + monster.hp);
     let defensiveCR = getCRFromHP(monster.hp);
-    console.log("Your defensive CR is: " + defensiveCR);
-    let expectedAC = getAC(defensiveCR);
-    console.log("Your expected AC is: " + expectedAC);
+    if (text) console.log("Your defensive CR is: " + defensiveCR);
+    
+    // Adjust Defensive CR based on targetCR
+    if (targetCR !== undefined) {
+        let defensiveAdjustment = Math.abs(defensiveCR - targetCR);
+        if (defensiveCR < targetCR && text) {
+            console.log(`Your defensive CR is lower than the target CR by ${defensiveAdjustment}. Consider increasing HP or AC.`);
+        } else if (defensiveCR > targetCR && text) {
+            console.log(`Your defensive CR is higher than the target CR by ${defensiveAdjustment}. Consider reducing HP or AC.`);
+        }
+    }
+    
+    let expectedAC = getAC(targetCR ?? defensiveCR);
+    if (text) console.log("Your expected AC is: " + expectedAC);
     let actualAC = monster.ac;
-    console.log("Your actual AC is: " + actualAC);
+    if (text) console.log("Your actual AC is: " + actualAC);
 
     // Calculate the difference between expected and actual AC
     let acDifference = actualAC - expectedAC;
-    console.log("Your AC difference is: " + acDifference);
+    if (text) console.log("Your AC difference is: " + acDifference);
 
     // Suggest AC adjustment
-    if (Math.abs(acDifference) >= 3) {
+    if (Math.abs(acDifference) >= 3 && text) {
         let acAdjustmentPercent = Math.abs(acDifference) * 5; // 5% per point of AC difference
         if (acDifference > 0) {
             console.log(`Consider reducing HP or DPR by ${acAdjustmentPercent}% to maintain balance.`);
@@ -450,44 +502,141 @@ function adjustOffensiveCR(cr: ChallengeRating, attackBonusDifference: number): 
     }
     
     // Adjust Defensive CR based on AC difference
-    let newDefenseCR = adjustDefensiveCR(defensiveCR, acDifference);
-    console.log("Your suggested defensive CR is: " + newDefenseCR);
+    let newDefenseCR = (adjustDefensiveCR(defensiveCR, acDifference)+defensiveCR)/2;
+    if (text) console.log("Your suggested defensive CR is: " + newDefenseCR);
 
     let offensiveCR = getCRFromDamage(calcDamagePerRound(monster));
-    console.log("Your offensive CR is: " + offensiveCR);
+    if (text) console.log("Your offensive CR is: " + offensiveCR);
 
-    let expectedAttackBonus = getAbilityBonus(offensiveCR);
-    console.log("Your expected attack bonus is: " + expectedAttackBonus);
+    // Adjust Offensive CR based on targetCR
+    if (targetCR !== undefined) {
+        let offensiveAdjustment = Math.abs(offensiveCR - targetCR);
+        if (offensiveCR < targetCR && text) {
+            console.log(`Your offensive CR is lower than the target CR by ${offensiveAdjustment}. Consider increasing DPR or attack bonuses.`);
+        } else if (offensiveCR > targetCR && text) {
+            console.log(`Your offensive CR is higher than the target CR by ${offensiveAdjustment}. Consider reducing DPR or attack bonuses.`);
+        }
+    }
+
+    let expectedAttackBonus = getAbilityBonus(targetCR ?? offensiveCR);
+    if (text) console.log("Your expected attack bonus is: " + expectedAttackBonus);
     let actualAttackBonus = getHighestAttackBonus(monster);
-    console.log("Your actual attack bonus is: " + actualAttackBonus);
+    if (text) console.log("Your actual attack bonus is: " + actualAttackBonus);
 
     let attackBonusDifference = actualAttackBonus - expectedAttackBonus;
-    console.log("Your attack bonus difference is: " + attackBonusDifference);
+    if (text) console.log("Your attack bonus difference is: " + attackBonusDifference);
 
     // Suggest changes for Attack Bonus
-    if (Math.abs(attackBonusDifference) >= 1) {
+    if (Math.abs(attackBonusDifference) >= 1 && text) {
         let attackBonusAdjustmentPercent = Math.abs(attackBonusDifference) * 5;
         console.log(`Consider adjusting DPR by ${attackBonusAdjustmentPercent}% for attack bonus discrepancy.`);
     }
 
-    let newOffensiveCR = adjustOffensiveCR(offensiveCR, attackBonusDifference);
-    console.log("Your suggested offensive CR is: " + newOffensiveCR);
-
+    let newOffensiveCR = (adjustOffensiveCR(offensiveCR, attackBonusDifference)+offensiveCR)/2;
+    if (text) console.log("Your suggested offensive CR is: " + newOffensiveCR);
 
     // Factor in special traits (e.g., regeneration)
     if (monster.traits) {
         monster.traits.forEach(trait => {
-            if (trait.name.toLowerCase().includes("regeneration") || trait.name.toLowerCase().includes("healing")) {
-                let adjustedHP = monster.hp * 0.7; // Adjust HP for regeneration
-                console.log("Your HP after adjustment for regenerative traits is: " + adjustedHP);
+            if (trait.name.toLowerCase().includes("regeneration") || trait.name.toLowerCase().includes("healing") || trait.name.toLowerCase().includes("recovery") ||
+                trait.name.toLowerCase().includes("regain") || trait.description.toLowerCase().includes("regain")) {
+                let adjustedHP = monster.hp * 0.7; // Adjust HP for regeneration (this factor can be fine-tuned)
+                if (text) console.log("Your HP after adjustment for regenerative traits is: " + adjustedHP);
                 let adjustedDefensiveCR = getCRFromHP(adjustedHP);
-                console.log("Your new defensive CR after regeneration adjustment is: " + adjustedDefensiveCR);
+                if (text) console.log("Your new defensive CR after regeneration adjustment is: " + adjustedDefensiveCR);
             }
         });
     }
 
-    // Calculate final CR
-    let finalCR = Math.round((defensiveCR + offensiveCR) / 2);
-    console.log("Your final CR is: " + finalCR);
+    // Account for healing actions, bonus actions, and reactions
+    let totalHealing = 0;
+    let healingPerRound = 0;
+
+    // Helper function to calculate healing from actions
+    const calculateHealingAmount = (action: Action): number => {
+        let healingAmount = 0;
+        
+        // Check healing from attack
+        if (action.attack) {
+            if (action.attack.healingAmount) {
+                healingAmount += action.attack.healingAmount;
+            } else if (action.attack.healingDice) {
+                healingAmount += rollDice(action.attack.healingDice);
+            }
+        }
+        
+        // Check healing from spell
+        if (action.spell) {
+            if (action.spell.healingAmount) {
+                healingAmount += action.spell.healingAmount;
+            } else if (action.spell.healingDice) {
+                healingAmount += rollDice(action.spell.healingDice);
+            }
+        }
+        
+        // Check healing from items
+        if (action.item) {
+            if (action.item.healingAmount) {
+                healingAmount += action.item.healingAmount;
+            } else if (action.item.healingDice) {
+                healingAmount += rollDice(action.item.healingDice);
+            }
+        }
+
+        return healingAmount;
+    };
+
+    // Process each action, bonus action, and reaction for healing effects
+    if (monster.actions) {
+        monster.actions.forEach(action => {
+            healingPerRound += calculateHealingAmount(action);
+        });
+    }
+    if (monster.bonusActions) {
+        monster.bonusActions.forEach(action => {
+            healingPerRound += calculateHealingAmount(action);
+        });
+    }
+    if (monster.reactions) {
+        monster.reactions.forEach(action => {
+            healingPerRound += calculateHealingAmount(action);
+        });
+    }
+
+    totalHealing = healingPerRound;
+    if (text) console.log("Total healing per round: " + totalHealing);
+
+    // Adjust Defensive CR based on healing
+    let finalDefensiveCR = (adjustDefensiveCR(newDefenseCR, totalHealing)+newDefenseCR)/2;
+    if (text) console.log("Your final defensive CR after considering healing actions is: " + finalDefensiveCR);
+
+    // Adjust final CR based on targetCR
+    let finalCR = Math.round((finalDefensiveCR + offensiveCR) / 2 * 4) / 4;  // Round to nearest quarter
+    // Round based on CR value
+    if (finalCR >= 1) {
+        finalCR = Math.round(finalCR);  // Round to the nearest whole number if >= 1
+    } else {
+        // Custom rounding to avoid .75, rounding to 0.125, 0.25, 0.5 only
+        const rounded = Math.round(finalCR * 4) / 4; // Round to the nearest 0.25 (0.125, 0.25, 0.5)
+        
+        // Adjust if rounded value is .75, changing it to .5
+        if (rounded === 0.75) {
+            finalCR = 0.5;
+        } else {
+            finalCR = rounded;
+        }
+    }
+    if (text) console.log("Your final CR is: " + finalCR);
+
+    // If a targetCR is provided, adjust the final CR accordingly
+    if (targetCR !== undefined) {
+        let crDifference = Math.abs(finalCR - targetCR);
+        if (finalCR < targetCR && text) {
+            console.log(`Monster CR is too low by ${crDifference}. Consider adjusting stats to increase CR.`);
+        } else if (finalCR > targetCR && text) {
+            console.log(`Monster CR is too high by ${crDifference}. Consider adjusting stats to decrease CR.`);
+        }
+    }
+
     return finalCR as ChallengeRating;
 }

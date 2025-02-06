@@ -13,8 +13,12 @@ export class CornOoze extends BaseMonster {
     remainingHitDice: number;
 
     constructor(hitDice: string, HPmod: number) {
-        let hp = rollDice(hitDice+HPmod);
+        let hp = rollDice(hitDice+`+${HPmod}`);
         let abilities = { strength: 15, dexterity: 6, constitution: 14, intelligence: 2, wisdom: 6, charisma: 1 };
+        const parts = hitDice.split("d"); // Splits "3d10" into ["3", "10"]
+        let numHitDice = Number(parts[0]); // Converts "3" to a number
+        hitDice = "d" + parts[1]; // Reconstructs "d10"
+
         super({
             name: "Corn Ooze",
             // species: "Ooze",
@@ -69,10 +73,9 @@ export class CornOoze extends BaseMonster {
             damageVulnerabilities: [],
             conditionImmunities: [ConditionType.Blinded, ConditionType.Charmed, ConditionType.Deafened, ConditionType.Exhaustion, ConditionType.Frightened, ConditionType.Prone]
         });
-        const parts = hitDice.split("d"); // Splits "3d10" into ["3", "10"]
-        this.numHitDice = Number(parts[0]); // Converts "3" to a number
+        this.numHitDice = numHitDice;
         this.remainingHitDice = this.numHitDice;
-        this.hitDice = "d" + parts[1]; // Reconstructs "d10"
+        this.hitDice = hitDice;
     }
 
     attackTarget(target: BaseMonster): void {
